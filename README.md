@@ -177,3 +177,74 @@ function isValid(s):
 - **不转成字符串**：全程用数学运算（取余 `%` 和整除 `//`）。
 - **O(1) 空间**：仅用两个变量 `x` 和 `reversed`。
 - **O(log n) 时间**：数字的位数是 log₁₀(n) 级别。
+
+
+# 作业4
+编写一个函数来查找字符串数组中的最长公共前缀。
+
+如果不存在公共前缀，返回空字符串 ""。
+
+ 
+
+示例 1：
+
+输入：strs = ["flower","flow","flight"]
+输出："fl"
+示例 2：
+
+输入：strs = ["dog","racecar","car"]
+输出：""
+解释：输入不存在公共前缀。
+### 思路（先讲思路，后给代码）
+
+1. **特殊情况**  
+   - 空数组 `[]` → 直接返回 `""`  
+   - 只有一个字符串 → 该字符串就是公共前缀  
+
+2. **纵向扫描（按列比较）**  
+   - 把第一个字符串 `strs[0]` 当作“基准前缀”。  
+   - 从第 2 个字符串开始，逐个检查每个字符是否与基准前缀同一位置的字符相同。  
+   - 一旦发现某一位不匹配，立即把基准前缀截断到这一位之前。  
+   - 过程中如果基准前缀被截成空串，可提前结束。  
+
+3. **复杂度**  
+   - 时间：O(S) —— S 是所有字符总数；最坏情况下每个字符都被比较一次。  
+   - 空间：O(1) —— 只用到常数个额外变量。
+
+---
+
+### Go 代码
+
+```go
+package main
+
+import "fmt"
+
+func longestCommonPrefix(strs []string) string {
+	if len(strs) == 0 {
+		return ""
+	}
+	// 取第一个字符串作为初始前缀
+	prefix := strs[0]
+
+	// 从第二个字符串开始比较
+	for i := 1; i < len(strs); i++ {
+		s := strs[i]
+		// 把 prefix 截短到与 s 相同长度的最小前缀
+		j := 0
+		for j < len(prefix) && j < len(s) && prefix[j] == s[j] {
+			j++
+		}
+		prefix = prefix[:j]
+		if prefix == "" {
+			break
+		}
+	}
+	return prefix
+}
+
+func main() {
+	fmt.Println(longestCommonPrefix([]string{"flower", "flow", "flight"})) // "fl"
+	fmt.Println(longestCommonPrefix([]string{"dog", "racecar", "car"}))    // ""
+}
+```
