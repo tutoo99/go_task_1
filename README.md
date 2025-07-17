@@ -249,7 +249,7 @@ func main() {
 }
 ```
 
-#作业5
+# 作业5
 给定一个表示 大整数 的整数数组 digits，其中 digits[i] 是整数的第 i 位数字。这些数字按从左到右，从最高位到最低位排列。这个大整数不包含任何前导 0。
 
 将大整数加 1，并返回结果的数字数组。
@@ -322,5 +322,228 @@ func main() {
 	fmt.Println(plusOne([]int{4, 3, 2, 1})) // [4 3 2 2]
 	fmt.Println(plusOne([]int{9})) // [1 0]
 	fmt.Println(plusOne([]int{9, 9})) // [1 0 0]
+}
+```
+
+
+# 作业6
+给你一个 非严格递增排列 的数组 nums ，请你 原地 删除重复出现的元素，使每个元素 只出现一次 ，返回删除后数组的新长度。元素的 相对顺序 应该保持 一致 。然后返回 nums 中唯一元素的个数。
+
+考虑 nums 的唯一元素的数量为 k ，你需要做以下事情确保你的题解可以被通过：
+
+更改数组 nums ，使 nums 的前 k 个元素包含唯一元素，并按照它们最初在 nums 中出现的顺序排列。nums 的其余元素与 nums 的大小不重要。
+返回 k 。
+判题标准:
+
+系统会用下面的代码来测试你的题解:
+
+int[] nums = [...]; // 输入数组
+int[] expectedNums = [...]; // 长度正确的期望答案
+
+int k = removeDuplicates(nums); // 调用
+
+assert k == expectedNums.length;
+for (int i = 0; i < k; i++) {
+    assert nums[i] == expectedNums[i];
+}
+如果所有断言都通过，那么您的题解将被 通过。
+
+ 
+
+示例 1：
+
+输入：nums = [1,1,2]
+输出：2, nums = [1,2,_]
+解释：函数应该返回新的长度 2 ，并且原数组 nums 的前两个元素被修改为 1, 2 。不需要考虑数组中超出新长度后面的元素。
+示例 2：
+
+输入：nums = [0,0,1,1,1,2,2,3,3,4]
+输出：5, nums = [0,1,2,3,4]
+解释：函数应该返回新的长度 5 ， 并且原数组 nums 的前五个元素被修改为 0, 1, 2, 3, 4 。不需要考虑数组中超出新长度后面的元素。
+
+思路（先讲思路，后给代码）
+
+1. 数组已经**非严格递增**，重复元素必然相邻。  
+2. **双指针**  
+   - `slow`：指向当前**已去重区间的末尾**（初始 0）。  
+   - `fast`：遍历整个数组（从 1 开始）。  
+3. **比较与复制**  
+   - 若 `nums[fast] != nums[slow]`，说明遇到新的唯一值：  
+     - `slow++` 先移动一位，再把 `nums[fast]` 复制到 `nums[slow]`。  
+   - 否则跳过重复值。  
+4. 结束时 `slow + 1` 就是唯一元素个数 `k`，且前 `k` 个位置已按要求排好。  
+
+时间复杂度：O(n)  
+空间复杂度：O(1)（原地修改）
+
+Go 代码
+```go
+package main
+
+import "fmt"
+
+func removeDuplicates(nums []int) int {
+	if len(nums) == 0 {
+		return 0
+	}
+	slow := 0 // 已去重区间的末尾
+	for fast := 1; fast < len(nums); fast++ {
+		if nums[fast] != nums[slow] {
+			slow++
+			nums[slow] = nums[fast]
+		}
+	}
+	return slow + 1
+}
+
+func main() {
+	nums1 := []int{1, 1, 2}
+	k1 := removeDuplicates(nums1)
+	fmt.Println(k1, nums1[:k1]) // 2 [1 2]
+
+	nums2 := []int{0, 0, 1, 1, 1, 2, 2, 3, 3, 4}
+	k2 := removeDuplicates(nums2)
+	fmt.Println(k2, nums2[:k2]) // 5 [0 1 2 3 4]
+}
+```
+
+# 作业7
+以数组 intervals 表示若干个区间的集合，其中单个区间为 intervals[i] = [starti, endi] 。请你合并所有重叠的区间，并返回 一个不重叠的区间数组，该数组需恰好覆盖输入中的所有区间 。
+
+ 
+
+示例 1：
+
+输入：intervals = [[1,3],[2,6],[8,10],[15,18]]
+输出：[[1,6],[8,10],[15,18]]
+解释：区间 [1,3] 和 [2,6] 重叠, 将它们合并为 [1,6].
+示例 2：
+
+输入：intervals = [[1,4],[4,5]]
+输出：[[1,5]]
+解释：区间 [1,4] 和 [4,5] 可被视为重叠区间。
+思路（先讲思路，后给代码）
+
+1. 先**按区间左端点升序排序**；这样所有可能重叠的区间都会变成相邻。  
+2. **扫描合并**  
+   - 用 `merged [][]int` 保存结果。  
+   - 依次取每个区间 `[curStart, curEnd]`：  
+     - 若结果为空，或当前区间与 `merged` 最后一个区间**不重叠**（`curStart > lastEnd`），则直接追加。  
+     - 否则**合并**：把最后一个区间的右端点更新为 `max(lastEnd, curEnd)`。  
+3. 返回 `merged`。
+
+时间复杂度  
+- 排序：O(n log n)  
+- 合并：O(n)  
+整体：O(n log n)
+
+空间复杂度  
+- 排序可能用 O(log n) 递归栈，合并结果 O(n)。
+
+Go 代码
+```go
+package main
+
+import (
+	"fmt"
+	"sort"
+)
+
+func merge(intervals [][]int) [][]int {
+	if len(intervals) == 0 {
+		return nil
+	}
+
+	// 1. 按区间左端点排序
+	sort.Slice(intervals, func(i, j int) bool {
+		return intervals[i][0] < intervals[j][0]
+	})
+
+	merged := [][]int{}
+	for _, cur := range intervals {
+		curStart, curEnd := cur[0], cur[1]
+		if len(merged) == 0 || curStart > merged[len(merged)-1][1] {
+			// 不重叠，直接加入
+			merged = append(merged, []int{curStart, curEnd})
+		} else {
+			// 重叠，合并右端点
+			last := merged[len(merged)-1]
+			last[1] = max(last[1], curEnd)
+		}
+	}
+	return merged
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func main() {
+	fmt.Println(merge([][]int{{1, 3}, {2, 6}, {8, 10}, {15, 18}}))
+	// [[1 6] [8 10] [15 18]]
+
+	fmt.Println(merge([][]int{{1, 4}, {4, 5}}))
+	// [[1 5]]
+}
+```
+
+# 作业8
+给定一个整数数组 nums 和一个整数目标值 target，请你在该数组中找出 和为目标值 target  的那 两个 整数，并返回它们的数组下标。
+
+你可以假设每种输入只会对应一个答案，并且你不能使用两次相同的元素。
+
+你可以按任意顺序返回答案。
+
+ 
+
+示例 1：
+
+输入：nums = [2,7,11,15], target = 9
+输出：[0,1]
+解释：因为 nums[0] + nums[1] == 9 ，返回 [0, 1] 。
+示例 2：
+
+输入：nums = [3,2,4], target = 6
+输出：[1,2]
+示例 3：
+
+输入：nums = [3,3], target = 6
+输出：[0,1]
+思路（先讲思路，后给代码）
+
+1. **一遍哈希表（最优）**  
+   - 遍历数组时，把每个元素及其下标存入哈希表 `map[num]index`。  
+   - 对于当前元素 `x`，只需检查 `target - x` 是否已在哈希表中：  
+     - 若存在，直接返回这对下标。  
+     - 若不存在，把当前 `(x, index)` 存进哈希表继续往后扫。  
+   - 时间复杂度 O(n)，空间复杂度 O(n)。  
+
+2. **边界**  
+   - 题目保证**唯一答案**，无需处理多解或重复元素。  
+
+Go 代码（一遍哈希）
+```go
+package main
+
+import "fmt"
+
+func twoSum(nums []int, target int) []int {
+	m := make(map[int]int) // value -> index
+	for i, v := range nums {
+		if j, ok := m[target-v]; ok {
+			return []int{j, i}
+		}
+		m[v] = i
+	}
+	return nil // 题目保证有解，不会走到这里
+}
+
+func main() {
+	fmt.Println(twoSum([]int{2, 7, 11, 15}, 9)) // [0 1]
+	fmt.Println(twoSum([]int{3, 2, 4}, 6))      // [1 2]
+	fmt.Println(twoSum([]int{3, 3}, 6))         // [0 1]
 }
 ```
